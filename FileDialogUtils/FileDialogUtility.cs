@@ -55,7 +55,7 @@
                 InitialDirectory = directoryPath,
                 FileName = suggestedName,
                 Filter = filter,
-                DefaultExt = fileExtension.TrimStart('.')
+                DefaultExt = fileExtension.TrimStart('.') 
             };
         }
 
