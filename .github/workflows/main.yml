@@ -1,0 +1,64 @@
+name: .NET Core Desktop - Dev Environment
+
+on:
+  push:
+    branches: [ "develop" ]  # Change as needed
+  pull_request:
+    branches: [ "develop" ]  # Optional for PR validation
+
+jobs:
+
+  build:
+    name: Build and Package for Dev
+    runs-on: windows-latest
+    environment: dev  # Associates this job with your "dev" GitHub environment
+
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    env:
+      Solution_Name: your-solution-name.sln                  # e.g., MyApp.sln
+      Test_Project_Path: path/to/your/tests.csproj           # e.g., MyApp.Tests\MyApp.Tests.csproj
+      Wap_Project_Directory: path/to/wap/project             # e.g., MyApp.Package
+      Wap_Project_Path: path/to/wap/project/project.wapproj # e.g., MyApp.Package\MyApp.Package.wapproj
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Run unit tests
+      run: dotnet test ${{ env.Test_Project_Path }}
+
+    - name: Restore the application
+      run: msbuild $env:Solution_Name /t:Restore /p:Configuration=${{ matrix.configuration }}
+      env:
+        Configuration: ${{ matrix.configuration }}
+
+    - name: Decode the signing certificate (.pfx)
+      run: |
+        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.Base64_Encoded_Pfx }}")
+        $certificatePath = Join-Path -Path $env:Wap_Project_Directory -ChildPath GitHubActionsWorkflow.pfx
+        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+
+    - name: Build MSIX Package
+      run: msbuild $env:Wap_Project_Path /p:Configuration=${{ matrix.configuration }} /p:UapAppxPackageBuildMode=StoreUpload /p:AppxBundle=Always /p:AppxBundlePlatforms="x86|x64" /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:PackageCertificatePassword=${{ secrets.Pfx_Key }}
+
+    - name: Remove decoded certificate
+      run: Remove-Item -Path $env:Wap_Project_Directory\GitHubActionsWorkflow.pfx -Force
+
+    - name: Upload MSIX Package as Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MSIX Package - ${{ matrix.configuration }}
+        path: ${{ env.Wap_Project_Directory }}\AppPackages
