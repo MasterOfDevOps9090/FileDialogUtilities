@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWindowsForms>true</UseWindowsForms>
+		<Nullable>enable</Nullable>
+
+		<PackageId>FileDialogUtils</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>Soumya</Authors>
+		<Description>Lightweight library for working with Windows file dialogs and generating safe, timestamped file names.</Description>
+		<PackageTags>file-dialog winforms utilities filenames</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Update="README.md">
+			<Pack>true</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
+
+</Project>
